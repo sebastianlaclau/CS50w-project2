@@ -1,0 +1,21 @@
+{% extends "auctions/layout.html" %}
+{% load bootstrap4 %}
+{% block body %}
+
+    <h2>Create listing</h2>
+    
+    <form action="{% url 'create_auction' %}" method="post" class="form">
+        {% csrf_token %}
+        <div class="form-group col-md-6">
+            {% bootstrap_form listingForm %}
+        </div>
+        <div class="form-group col-md-6">
+            {% buttons %}
+                <button type="submit" class="btn btn-info">Create</button>
+            {% endbuttons %}
+        </div>
+    </form>
+    
+    {% if message %} {{message}} {%endif%}
+
+{% endblock %}

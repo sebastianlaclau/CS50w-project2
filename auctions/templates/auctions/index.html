@@ -1,0 +1,52 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+
+
+{% block body %}
+
+
+<h5 class="m-4 font-weight-bold" style="color:#342e37;">{{ title }}{% if category_name %} in {{ category_name }} {% endif %}</h5>
+
+{% if list.0 %}
+<div class="card-columns">
+  {% for item in list %}
+
+  <div class="card">
+    <div class="container">
+
+
+      {% if item.image_url %}
+      <img class="card-img-top opacity-50" src="{{item.image_url}}" alt="Card image cap">
+      {% else %}
+      <img class="card-img-top" src="../../static/auctions/media/nopic.jpg" alt="Card image cap" style="width:100%">
+      {% endif %}
+    </div>
+    <div class="card-body">
+      <h5 class="card-title font-weight-bold">
+        <small class="font-weight-bold">
+          {{item.title}}
+        </small>
+      </h5>
+
+      <p class="card-text">{{item.description}}</p>
+
+      <span class="badge border border-secondary text-secondary">
+        current price ${% if item.max_offer %}{{item.max_offer | intcomma }}{% else %}{{item.starting_bid | intcomma }} {% endif %}
+      </span>
+      <span class="badge border border-secondary text-secondary">
+        {%if item.bids == 0 %} no bids {% elif items.bids == 1 %} 1 bid {%else%} {{ item.bids }} bids {%endif%}
+      </span>
+      <a href="/auction/{{item.id}}" class="stretched-link">
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="mt-4 ml-1">
+  <h5 class="m-5 text-muted" style="color:#342e37;">No items.</h5>
+</div>
+{% endif %}
+
+
+{% endblock %}

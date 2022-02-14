@@ -1,0 +1,33 @@
+{% extends "auctions/layout.html" %}
+{% load bootstrap4 %}
+
+{% block body %}
+
+    <h5 class="m-4 font-weight-bold" style="color:#342e37;">Login</h5>
+
+    {% if message %}
+        <div>{{ message }}</div>
+    {% endif %}
+
+    <div class="form-group col-md-4">
+
+        <form action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input autofocus class="form-control form-control-sm" type="text" name="username" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <input class="form-control form-control-sm" type="password" name="password" placeholder="Password">
+            </div>
+            <input class="btn btn-info btn-sm" type="submit" value="Login">
+        </form>
+        <div class="mt-4">
+            Don't have an account? Register <a class="" href="{% url 'register' %}">here.</a>
+        </div>
+        <div class="mt-2"><small>
+            <b>For demo purposes</b> username: <em>demo</em> / password: <em>demo_demo</em>
+        </small>
+        </div>
+    </div>
+
+{% endblock %}

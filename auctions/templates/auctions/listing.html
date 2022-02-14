@@ -1,0 +1,182 @@
+{% extends "auctions/layout.html" %}
+{% load humanize %}
+{% load static %}
+
+{% block body %}
+
+<div class="row justify-content-center">
+    <div class="col-sm-5">
+
+<div class="card">
+    <!-- image -->
+    <div class="container">
+        {% if listing.image_url %}
+        <img class="card-img-top" src="{{listing.image_url}}" alt="Card image cap">
+        {% else %}
+        <img class="card-img-top" src="{% static 'auctions/media/nopic.jpg' %}" alt="Card image cap" style="width:100%">
+        {% endif %}
+    </div>
+    <!-- card body -->            
+        <div class="card-body">
+            <div class="clearfix">
+                <h5 class="card-title float-left font-weight-bold">
+                    <small class="font-weight-bold float-left">
+                        {{listing.title}}
+                    </small>
+                </h5>
+                <!-- like button -->
+                {% if user.is_authenticated %}
+                <a>
+                    <i id="like" user={{request.user.id}} listing={{listing.id}} class="bi {% if fav %}bi-heart-fill{% else %}bi-heart{% endif %} float-right text-info" style="font-size: 1.5rem;"></i>
+                </a>
+                {% endif %}
+            </div>
+            <p class="card-text">{{listing.description}}</p>           
+          
+            <!-- badges -->
+            <div class="row row-padding">  
+                <div class="col float-left">
+                  <span class="badge border border-secondary text-secondary">
+                     starting price ${{listing.starting_bid | intcomma }}
+                  </span>
+                  <span class="badge border border-secondary text-secondary">
+                     {%if bids_count == 0 %} no bids {% elif bids_count == 1 %} 1 bid {%else%} {{ bids_count }} bids {%endif%}
+                  </span>              
+                    {%if bids_count > 0 %}
+                  <span class="badge border border-secondary text-secondary">
+                     current max bid ${{max_bid | intcomma }}
+                  </span>
+                    {%endif%}
+                </div>
+            </div> <!-- end badges -->
+
+
+                <!-- buttons -->
+                <div class="row mt-5">
+                    <div class="col float-left">
+                        {% if request.user.id == listing.creator_user_id %}
+                        <a type="button" href="{% url 'activate' listing.id %}" class="btn btn-sm {%if listing.active%}btn-danger{%else%}btn-success{%endif%}">                       
+                            {%if listing.active%}Close auction{%else%}Activate auction{%endif%}
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col float-right">
+                        <p class="text-right float-right">
+                            {%if user.is_authenticated%}
+                            <button type="button" class="btn btn-sm btn-outline-info">
+                                <a type="button" data-toggle="modal" data-target="#exampleModal">Comment</a>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger">
+                                <a type="button" class="" data-toggle="modal" data-target="#bidModal">Bid!</a>
+                            </button>
+                            {%endif%}
+                        </p>
+                    </div>
+                </div> <!-- end buttons -->
+                
+        </div><!-- end card body -->
+       
+            
+{% if comments %}
+{% for comment in comments %}
+
+        <!-- comments section -->
+        <div class="card">
+          
+                
+
+                  <blockquote class="blockquote mt-3 ml-3 mb-3 mr-2">
+                      <h6 class="mb-1 font-italic">{{comment.description}}</h6>
+                     <footer class="blockquote-footer">{{comment.user}},
+                         <cite class=""> {{comment.date}}</cite>
+                     </footer>
+                   </blockquote>
+          
+        </div>
+  
+            
+{% endfor %}
+{% endif %}
+            
+
+            <!-- Modal comment --> 
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <form method="POST" action="{% url 'show_auction' listing.id %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <textarea class="form-control" id="{{ comment_form.description.id_for_label }}" rows="8" name="{{ comment_form.description.html_name }}" placeholder="Comment..."></textarea>
+                                </div>
+                                <div class="text-right">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                                    <input type="submit" class="btn btn-sm bg-info text-white" value="Comment" >
+                                </div>
+                            </form>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Modal bid -->
+            <div class="modal fade" id="bidModal" tabindex="-1" role="dialog" aria-labelledby="bidModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <form method="POST" action="{% url 'show_auction' listing.id %}">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <input type="number" min="{{min_possible_bid}}" class="form-control" id="{{ bid_form.amount.id_for_label }}" name="{{ bid_form.amount.html_name }}" placeholder="Bid">
+                                </div>
+                                <div class="form-group">
+                                    <textarea class="form-control" id="{{ bid_form.note.id_for_label }}" rows="3" name="{{ bid_form.note.html_name }}" placeholder="Optional note"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col float-left">
+                                        <footer class="blockquote-footer">
+                                            <cite>
+                                                {%if bids_count == 0 %} No bids at the moment {%else%} Current max bid is {{ max_bid | intcomma }} {%endif%}
+                                            </cite>
+                                        </footer>
+                                    </div>
+                                    <div class="col text-right">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+                                        <input type="submit" class="btn btn-sm bg-info text-white" value="Bid" >
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+    
+</div> <!-- ends card -->
+
+</div> <!-- ends col -->
+</div> <!-- ends row -->
+
+<script type="text/javascript"> 
+
+    window.onload = function() {
+        $( "#like" ).on('click', function(){
+            let listing = $(this).attr('listing')
+            let user = $(this).attr('user')
+            $.get('/favourite/'+ listing + '/' + user)
+            $("#like").toggleClass('bi-heart bi-heart-fill')
+        })
+    }    
+
+</script>
+
+{% endblock %}
